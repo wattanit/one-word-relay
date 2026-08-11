@@ -4,7 +4,7 @@ import random
 from onewordrelay.config import SessionConfig, PersonaConfig
 from onewordrelay.agent import AgentState
 from onewordrelay.transcript import Transcript
-from onewordrelay.llm_client import LLMClientStub
+from onewordrelay.llm_client import LLMClient
 from onewordrelay.wordsel import extract_word, select_word, roll_impurity
 from onewordrelay.logger import SessionLogger
 
@@ -13,7 +13,7 @@ class GameSession:
         self.config = session_config
         self.transcript = Transcript()
         self.logger = SessionLogger(session_config.log_path)
-        self.llm = LLMClientStub()
+        self.llm = LLMClient()
         
         # Initialize players
         self.players = [AgentState(p) for p in personas]

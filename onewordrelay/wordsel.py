@@ -6,12 +6,16 @@ from onewordrelay.config import SessionConfig
 def extract_word(text: str) -> str:
     """
     Extracts the first whole word from the text, respecting real word boundaries.
+    Removes trailing ellipses or filler punctuation that might disturb the turn end system.
     (FR-6)
     """
-    # Match the first sequence of non-whitespace characters
     match = re.search(r'\S+', text)
     if match:
-        return match.group(0)
+        word = match.group(0)
+        # Remove trailing ellipses (...) or repeated punctuation that doesn't 
+        # constitute a formal sentence boundary (. ! ?)
+        word = re.sub(r'\.{2,}$', '', word)
+        return word
     return ""
 
 def select_word(candidates: List[str], confusion_triggered: bool) -> Tuple[str, str]:

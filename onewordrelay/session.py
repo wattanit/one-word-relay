@@ -68,9 +68,8 @@ class GameSession:
             f"Original Prompt: {original_prompt}\n"
             f"Your Private Intent: {player.private_intent}\n\n"
             "You are collaborating to write a coherent, grammatically correct answer to the prompt. "
-            "While following your private intent, ensure the sentence remains structurally sound. "
-            "Provide EXACTLY one word. Do not use punctuation "
-            "unless the word naturally ends the entire sentence."
+            "While following your private intent, suggest the next few words of the sentence. "
+            "The system will only use the first word you provide, but thinking ahead will help maintain coherence."
         )
         
         if forgetfulness:
@@ -142,3 +141,12 @@ class GameSession:
             return True
             
         return False
+
+    def extend_budget(self):
+        """
+        Increments the turn budget by the original budget amount.
+        """
+        # We use a fixed increment based on the initial budget 
+        # (or we could use a stored initial_budget value).
+        # For now, we'll just double it or add a fixed amount.
+        self.config.turn_budget += 20 # Adding a fixed 20-turn extension

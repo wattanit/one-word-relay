@@ -71,9 +71,20 @@ def main():
         # Check stopping conditions (FR-14, FR-15)
         if session.check_stopping_conditions():
             print("-" * 30)
-            choice = input("Pause reached. Continue? (y/n): ").strip().lower()
+            
+            # Determine why we paused to give a better message and action
+            is_budget_pause = session.turn_count >= session.config.turn_budget
+            reason = "Turn budget reached" if is_budget_pause else "Sentence boundary reached"
+            
+            print(f"{reason}. Continue? (y/n): ", end="")
+            choice = input().strip().lower()
+            
             if choice != 'y':
                 break
+            
+            if is_budget_pause:
+                session.extend_budget()
+                print(f"Budget extended to {session.config.turn_budget} turns.")
 
     # End of game
     print("\n" + "=" * 30)

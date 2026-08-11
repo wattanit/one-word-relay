@@ -57,7 +57,11 @@ def main():
     # Game Loop
     while True:
         # Run a turn
-        session.run_turn()
+        try:
+            session.run_turn(prompt)
+        except RuntimeError as e:
+            print(f"\nFatal Error: {e}")
+            break
         
         # FR-17: Print newly appended word
         last_word, player_name = session.transcript.entries[-1]

@@ -51,7 +51,7 @@ class GameSession:
                 player.private_intent
             )
 
-    def run_turn(self) -> bool:
+    def run_turn(self, original_prompt: str) -> bool:
         """
         Runs a single turn. Returns True if the game should continue, 
         False if a stopping condition was met.
@@ -62,18 +62,42 @@ class GameSession:
         forgetfulness = roll_impurity(self.config.drunk, player.persona.forgetfulness_multiplier)
         confusion = roll_impurity(self.config.drunk, player.persona.confusion_multiplier)
         
-        # 2. Assemble Context
+        # 2. Assemble Context (FR-7, FR-8)
+        # Common base context
+        base_context = (
+            f"Original Prompt: {original_prompt}\n"
+            f"Your Private Intent: {player.private_intent}\n\n"
+            "The group is answering the prompt one word at a time. "
+            "Provide the next single word."
+        )
+        
         if forgetfulness:
-            context = self.transcript.get_last_k_words(self.config.k_forgetfulness)
+            # Forgetful turn: Only the last k words (FR-8)
+            transcript_text = self.transcript.get_last_k_words(self.config.k_forgetfulness)
+            context = (
+                f"{base_context}\n\n"
+                f"Note: You've lost the thread of the conversation. "
+                f"The last few words were: ...{transcript_text}"
+            )
         else:
-            context = self.transcript.get_full_text()
+            # Normal turn: Full transcript (FR-7)
+            transcript_text = self.transcript.get_full_text()
+            context = (
+                f"{base_context}\n\n"
+                f"Current Transcript: {transcript_text if transcript_text else '[No words yet]'}"
+            )
             
         # 3. Generate Candidates
         candidates_raw = []
         candidates_extracted = []
         for _ in range(self.config.num_candidates):
-            # In M1 we use the stub client
-            resp = self.llm.generate_completion(player.persona.personality_prompt, context)
+            # In M2 we use the real LLMClient
+            try:
+                resp = self.llm.generate_completion(player.persona.personality_prompt, context)
+            except RuntimeError as e:
+                # Halt the session (Error Handling Policy)
+                raise RuntimeError(f"Turn failed for {player.persona.name}: {e}")
+                
             candidates_raw.append(resp)
             candidates_extracted.append(extract_word(resp))
             

@@ -118,6 +118,8 @@ def main():
 
     # End of game
     print("\n" + "=" * 30)
+    print(f"ORIGINAL PROMPT: {prompt}")
+    print("-" * 30)
     print("RAW TRANSCRIPT:")
     raw_text = session.transcript.get_full_text()
     print(raw_text)

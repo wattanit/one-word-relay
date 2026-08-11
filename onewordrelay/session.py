@@ -12,7 +12,14 @@ class GameSession:
     def __init__(self, session_config: SessionConfig, personas: List[PersonaConfig]):
         self.config = session_config
         self.transcript = Transcript()
-        self.logger = SessionLogger(session_config.log_path)
+        
+        # Generate timestamped log path if not explicitly provided (FR-21)
+        from datetime import datetime
+        if not self.config.log_path:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            self.config.log_path = f"sessions/game-{timestamp}.jsonl"
+            
+        self.logger = SessionLogger(self.config.log_path)
         self.llm = LLMClient()
         
         # Initialize players

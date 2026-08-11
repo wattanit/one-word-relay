@@ -11,7 +11,7 @@ class SessionConfig:
     k_forgetfulness: int = 10
     num_candidates: int = 3
     drunk: float = 0.0
-    log_path: str = "sessions/game.jsonl"
+    log_path: str = "" # Now initialized in session.py to include timestamp
 
 @dataclass
 class PersonaConfig:

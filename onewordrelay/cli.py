@@ -7,7 +7,7 @@ from onewordrelay.session import GameSession
 
 def main():
     parser = argparse.ArgumentParser(description="One-Word Relay POC")
-    parser.add_argument("--drunk", type=float, default=0.1, help="Global drunk parameter (0.0 to 1.0)")
+    parser.add_argument("--drunk", type=float, default=0.2, help="Global drunk parameter (0.0 to 1.0)")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose mode to see internal mechanics")
     args = parser.parse_args()
 

@@ -10,8 +10,6 @@ def extract_word(text: str) -> str:
     This prevents strings like 'bread...can...' from being treated as a single word.
     (FR-6)
     """
-    # Find the first sequence of characters that are alphanumeric.
-    # This ignores leading dots, spaces, or other punctuation.
     match = re.search(r"[a-zA-Z0-9\u00C0-\u017F]+(?:['\-][a-zA-Z0-9\u00C0-\u017F]+)*", text)
     if match:
         return match.group(0)
@@ -53,6 +51,9 @@ def roll_impurity(drunk: float, multiplier: float) -> bool:
     Rolls for forgetfulness or confusion.
     (FR-11, HC-3)
     """
+    # HC-3: Drunk=0 must deterministically disable both forgetfulness and confusion
     if drunk == 0:
         return False
+        
+    # Probability = global drunk parameter * per-player multiplier (FR-11)
     return random.random() < (drunk * multiplier)

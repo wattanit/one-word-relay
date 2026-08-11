@@ -1,6 +1,7 @@
 import sys
 import random
 import argparse
+import select
 from onewordrelay.config import SessionConfig, load_persona_configs
 from onewordrelay.session import GameSession
 
@@ -65,20 +66,24 @@ def main():
     print(f"\nStarting game with {num_players} players...")
     print(f"Prompt: {prompt}")
     print(f"Drunk Level: {args.drunk}")
+    print("Press 'q' + Enter at any turn to interrupt and end the game.")
     print("-" * 30)
 
     # Game Loop
     while True:
+        # To allow a 'q' interrupt without blocking the whole game, 
+        # we'll check for input before each turn.
+        # Since we are in a simple terminal app, we'll use a non-blocking check.
+        print("... ", end="", flush=True)
+        # Check if user pressed 'q' (non-blocking)
+        if select.select([sys.stdin], [], [], 0.1)[0]:
+            user_input = sys.stdin.readline().strip().lower()
+            if user_input == 'q':
+                print("\nInterrupted by user.")
+                break
+
         # Run a turn
         try:
-            # Check if user wants to intervene before the turn
-            # Since input() blocks, we'll implement this as a post-turn check 
-            # or a manual 'skip' request during the pause.
-            # However, the user wants to break a loop *now*.
-            
-            # To make it truly interactive without blocking, we'd need threading.
-            # Instead, we'll add a "Manual Intervention" prompt if the user wants.
-            
             turn_meta = session.run_turn(prompt)
         except RuntimeError as e:
             print(f"\nFatal Error: {e}")
@@ -98,37 +103,14 @@ def main():
         else:
             print(f"{player_name}: {last_word}")
 
-        # NEW: Intervention check
-        # We ask the user if they want to 'force a redo' of the last turn.
-        # To avoid asking every single turn (which is annoying), 
-        # we'll only offer this when a loop is suspected or just as a prompt.
-        # Better: add a prompt "Press enter for next word, 's' to skip/regenerate"
-        # But that changes the flow. 
-        # Let's implement a "Redo" option during the normal turn flow.
-        
-        # Since the user is in a terminal, the most natural way is to 
-        # press Enter to continue.
-        print(" [Enter: Next | s: Skip/Redo | q: Quit]", end=" ")
-        user_input = input().strip().lower()
-        
-        if user_input == 'q':
-            break
-        elif user_input == 's':
-            print(f"Skipping/Redoing turn for {player_name}...")
-            # Remove the last entry from transcript and decrement counters
-            session.transcript.entries.pop()
-            session.turn_count -= 1
-            session.current_player_idx = (session.current_player_idx - 1) % session.num_players
-            continue # This will cause the same player to run again
-
         # Check stopping conditions (FR-14, FR-15)
         if session.check_stopping_conditions():
             print("-" * 30)
             is_budget_pause = session.turn_count >= session.config.turn_budget
             reason = "Turn budget reached" if is_budget_pause else "Sentence boundary reached"
-            print(f"{reason}. Continue? (y/n): ", end="")
+            print(f"{reason}. Continue? (y/n) or 'q' to quit: ", end="")
             choice = input().strip().lower()
-            if choice != 'y':
+            if choice == 'q' or choice != 'y':
                 break
             if is_budget_pause:
                 session.extend_budget()

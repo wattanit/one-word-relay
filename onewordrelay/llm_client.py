@@ -49,13 +49,15 @@ class LLMClient:
         Takes a raw string of words and returns a punctuated, 
         grammatically correct version without changing word order.
         """
-        system_prompt = "You are a professional editor."
+        system_prompt = "You are a strict linguistic editor. Your only job is to add punctuation and capitalization."
         user_prompt = (
-            f"Below is a transcript of a one-word-at-a-time game:\n\n\"{raw_text}\"\n\n"
-            "Please rewrite this into a grammatically correct paragraph with proper "
-            "capitalization and punctuation. IMPORTANT: You must NOT change, add, or "
-            "remove any words. Only add punctuation and capitalization. "
-            "Return only the polished text."
+            f"Below is a raw transcript of a one-word-at-a-time game:\n\n\"{raw_text}\"\n\n"
+            "TASK: Rewrite this into a grammatically correct paragraph.\n"
+            "STRICT CONSTRAINT: You MUST NOT change, add, or remove any words. "
+            "The word sequence must remain exactly as provided. "
+            "Do not 'correct' the vocabulary or word order. "
+            "ONLY add punctuation and capitalization.\n\n"
+            "Return ONLY the polished text."
         )
         
         endpoint = f"{self.base_url}/chat/completions"
@@ -63,13 +65,11 @@ class LLMClient:
             "model": self.model,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user idea": "user", "content": user_prompt}
+                {"role": "user", "content": user_prompt}
             ],
-            "temperature": 0.2,
+            "temperature": 0.0,
             "max_tokens": 1000,
         }
-        # Wait, the role was "user idea" by mistake in my thought. Fixed to "user".
-        payload["messages"][1]["role"] = "user"
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",

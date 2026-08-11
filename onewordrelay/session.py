@@ -23,14 +23,33 @@ class GameSession:
         self.current_player_idx = 0
         self.turn_count = 0
 
-    def initialize_agents(self):
+    def initialize_agents(self, original_prompt: str):
         """
-        Stubbed initialization of private intents for M1.
+        Initializes each player with a private intent generated via the LLM.
+        (FR-3)
         """
         for player in self.players:
-            # M1: Just assign a stub intent
-            player.private_intent = f"Stub intent for {player.persona.name}"
-            self.logger.log_init(player.persona.name, player.persona.personality_prompt, player.private_intent)
+            system_msg = player.persona.personality_prompt
+            user_msg = (
+                f"The group is answering the question: '{original_prompt}'\n\n"
+                "Silently decide on a private direction or a specific goal for your "
+                "contribution to the answer. Answer with ONLY this private intent, "
+                "nothing else. Do not explain your reasoning."
+            )
+            
+            try:
+                intent = self.llm.generate_completion(system_msg, user_msg).strip()
+                player.private_intent = intent
+            except RuntimeError as e:
+                # Re-raise to trigger the session halt (Error Handling Policy)
+                raise RuntimeError(f"Failed to initialize intent for {player.persona.name}: {e}")
+            
+            # Log init entry immediately (FR-21)
+            self.logger.log_init(
+                player.persona.name, 
+                player.persona.personality_prompt, 
+                player.private_intent
+            )
 
     def run_turn(self) -> bool:
         """

@@ -44,7 +44,11 @@ def main():
 
     # Setup session
     session = GameSession(config, personas)
-    session.initialize_agents()
+    try:
+        session.initialize_agents(prompt)
+    except RuntimeError as e:
+        print(f"Fatal Error: {e}")
+        return
 
     print(f"\nStarting game with {num_players} players...")
     print(f"Prompt: {prompt}\n")

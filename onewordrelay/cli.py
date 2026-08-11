@@ -88,8 +88,14 @@ def main():
 
     # End of game
     print("\n" + "=" * 30)
-    print("FINAL TRANSCRIPT:")
-    print(session.transcript.get_full_text())
+    print("RAW TRANSCRIPT:")
+    raw_text = session.transcript.get_full_text()
+    print(raw_text)
+    
+    print("\n" + "-" * 30)
+    print("POLISHED VERSION:")
+    polished = session.llm.polish_transcript(raw_text)
+    print(polished)
     print("=" * 30)
     print(f"Log saved to: {config.log_path}")
 

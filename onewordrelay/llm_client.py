@@ -44,8 +44,38 @@ class LLMClient:
                 # Halt the session (handled by the caller, but we raise a clear error)
                 raise RuntimeError(f"LLM call failed after retry: {final_e}")
 
-    def _make_request(self, endpoint: str, payload: Dict[str, Any], headers: Dict[str, str]) -> str:
-        response = requests.post(endpoint, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
+    def polish_transcript(self, raw_text: str) -> str:
+        """
+        Takes a raw string of words and returns a punctuated, 
+        grammatically correct version without changing word order.
+        """
+        system_prompt = "You are a professional editor."
+        user_prompt = (
+            f"Below is a transcript of a one-word-at-a-time game:\n\n\"{raw_text}\"\n\n"
+            "Please rewrite this into a grammatically correct paragraph with proper "
+            "capitalization and punctuation. IMPORTANT: You must NOT change, add, or "
+            "remove any words. Only add punctuation and capitalization. "
+            "Return only the polished text."
+        )
+        
+        endpoint = f"{self.base_url}/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user idea": "user", "content": user_prompt}
+            ],
+            "temperature": 0.2,
+            "max_tokens": 1000,
+        }
+        # Wait, the role was "user idea" by mistake in my thought. Fixed to "user".
+        payload["messages"][1]["role"] = "user"
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        try:
+            return self._make_request(endpoint, payload, headers).strip()
+        except Exception as e:
+            return f"[Polishing failed: {e}]"

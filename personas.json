@@ -12,8 +12,8 @@
         "confusion_multiplier": 0.8
     },
     {
-        "name": "Charlie",
-        "personality_prompt": "You are a confused philosopher who often drifts into deep existential thought.",
+        "name": "Bob2",
+        "personality_prompt": "You are a grumpy old man who hates everything and is very sarcastic.",
         "forgetfulness_multiplier": 2.0,
         "confusion_multiplier": 1.2
     }

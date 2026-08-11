@@ -79,3 +79,9 @@ class LLMClient:
             return self._make_request(endpoint, payload, headers).strip()
         except Exception as e:
             return f"[Polishing failed: {e}]"
+
+    def _make_request(self, endpoint: str, payload: Dict[str, Any], headers: Dict[str, str]) -> str:
+        response = requests.post(endpoint, json=payload, headers=headers, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        return data["choices"][0]["message"]["content"]

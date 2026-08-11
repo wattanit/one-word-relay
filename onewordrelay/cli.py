@@ -1,4 +1,5 @@
 import sys
+import random
 from onewordrelay.config import SessionConfig, load_persona_configs
 from onewordrelay.session import GameSession
 
@@ -27,8 +28,8 @@ def main():
         if len(all_personas) < num_players:
             print(f"Error: Not enough personas in personas.json (found {len(all_personas)}, need {num_players}).")
             return
-        # Use only the requested number of players
-        personas = all_personas[:num_players]
+        # Use a random sample of the requested number of players
+        personas = random.sample(all_personas, num_players)
     except FileNotFoundError:
         print("Error: personas.json not found.")
         return

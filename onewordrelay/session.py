@@ -110,7 +110,8 @@ class GameSession:
             candidates_extracted.append(extract_word(resp))
             
         # 4. Select Word
-        selected_word, rule = select_word(candidates_extracted, confusion)
+        recent_words = [entry[0] for entry in self.transcript.entries[-15:]]
+        selected_word, rule = select_word(candidates_extracted, confusion, recent_words)
         
         # 5. Log Turn
         self.logger.log_turn(

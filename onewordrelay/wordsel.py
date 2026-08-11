@@ -15,27 +15,43 @@ def extract_word(text: str) -> str:
         return match.group(0)
     return ""
 
-def select_word(candidates: List[str], confusion_triggered: bool) -> Tuple[str, str]:
+def select_word(candidates: List[str], confusion_triggered: bool, recent_words: List[str]) -> Tuple[str, str]:
     """
-    Selects a word based on majority or confusion rules.
+    Selects a word based on majority or confusion rules, with a penalty 
+    for words that have appeared too frequently recently.
     (FR-10, FR-12)
     Returns (selected_word, rule_name).
     """
     if not candidates:
         return "", "none"
 
-    # Count occurrences of each word
+    # Repetition Penalty: identify words that appear too often in recent history
+    # If a word appears more than 2 times in the recent window, we treat it as 'tainted'
+    tainted_words = set()
+    for word in set(recent_words):
+        if recent_words.count(word) >= 3:
+            tainted_words.add(word)
+
+    # Count occurrences of each candidate
     counts = {}
     for word in candidates:
         counts[word] = counts.get(word, 0) + 1
 
     # Find the majority word
-    # Sorted by count desc, then by first appearance (stable sort in Python)
     sorted_words = sorted(counts.items(), key=lambda item: item[1], reverse=True)
     majority_word, majority_count = sorted_words[0]
 
+    # If the majority word is tainted and there is a non-tainted alternative, 
+    # we shift the selection to the next best non-tainted candidate.
+    if majority_word in tainted_words:
+        for word, count in sorted_words:
+            if word not in tainted_words:
+                majority_word = word
+                break
+        # Note: if all candidates are tainted, we still stick with the original majority_word
+
     if not confusion_triggered:
-        # Rule: Majority word. Tie-break: first generated (handled by stable sort)
+        # Rule: Majority word (or best non-tainted alternative). 
         return majority_word, "majority"
     else:
         # Rule: Random non-majority word (FR-12)
@@ -43,7 +59,6 @@ def select_word(candidates: List[str], confusion_triggered: bool) -> Tuple[str, 
         if minority_words:
             return random.choice(minority_words), "confusion"
         else:
-            # Fallback: if all candidates agree, confusion has no visible effect
             return majority_word, "fallback"
 
 def roll_impurity(drunk: float, multiplier: float) -> bool:

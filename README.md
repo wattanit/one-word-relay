@@ -24,6 +24,22 @@ cd one-word-relay
 uv sync
 ```
 
+### Environment Configuration
+The project uses an OpenAI-compatible API. You must set the following environment variables before running the game:
+
+| Variable | Description | Example |
+| :--- | :--- | :--- |
+| `LLM_BASE_URL` | The API endpoint | `http://localhost:11434/v1` (Ollama) or `https://api.openai.com/v1` |
+| `LLM_MODEL` | The model ID to use | `llama3` or `gpt-4o` |
+| `LLM_API_KEY` | Your API key | `your-api-key-here` (use `ollama` for local Ollama) |
+
+**Example for local Ollama:**
+```bash
+export LLM_BASE_URL="http://localhost:11434/v1"
+export LLM_MODEL="llama3"
+export LLM_API_KEY="ollama"
+```
+
 ### Running the Game
 Run the game via the CLI:
 ```bash

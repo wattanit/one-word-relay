@@ -68,7 +68,8 @@ class GameSession:
             f"Original Prompt: {original_prompt}\n"
             f"Your Private Intent: {player.private_intent}\n\n"
             "The group is answering the prompt one word at a time. "
-            "Provide the next single word."
+            "Your turn: provide EXACTLY one word. Do not use punctuation "
+            "unless the word naturally ends the entire sentence."
         )
         
         if forgetfulness:

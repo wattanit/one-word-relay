@@ -80,7 +80,10 @@ def main():
         if select.select([sys.stdin], [], [], 0.1)[0]:
             user_input = sys.stdin.readline().strip().lower()
             if user_input == 'q':
-                print("\nInterrupted by user.")
+                print("\nInterrupted by user. Disregarding final turn...")
+                session.transcript.entries.pop()
+                session.turn_count -= 1
+                session.current_player_idx = (session.current_player_idx - 1) % session.num_players
                 break
 
         # Run a turn
@@ -111,7 +114,13 @@ def main():
             reason = "Turn budget reached" if is_budget_pause else "Sentence boundary reached"
             print(f"{reason}. Continue? (y/n) or 'q' to quit: ", end="")
             choice = input().strip().lower()
-            if choice == 'q' or choice != 'y':
+            if choice == 'q':
+                print("\nQuitting and disregarding the final turn...")
+                session.transcript.entries.pop()
+                session.turn_count -= 1
+                session.current_player_idx = (session.current_player_idx - 1) % session.num_players
+                break
+            if choice != 'y':
                 break
             if is_budget_pause:
                 session.extend_budget()

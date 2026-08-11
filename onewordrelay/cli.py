@@ -1,9 +1,15 @@
 import sys
 import random
+import argparse
 from onewordrelay.config import SessionConfig, load_persona_configs
 from onewordrelay.session import GameSession
 
 def main():
+    parser = argparse.ArgumentParser(description="One-Word Relay POC")
+    parser.add_argument("--drunk", type=float, default=0.1, help="Global drunk parameter (0.0 to 1.0)")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose mode to see internal mechanics")
+    args = parser.parse_args()
+
     print("--- One-Word Relay POC ---")
     
     # FR-1: Collect input
@@ -28,60 +34,73 @@ def main():
         if len(all_personas) < num_players:
             print(f"Error: Not enough personas in personas.json (found {len(all_personas)}, need {num_players}).")
             return
-        # Use a random sample of the requested number of players
         personas = random.sample(all_personas, num_players)
     except FileNotFoundError:
         print("Error: personas.json not found.")
         return
 
-    # Session configuration (defaults for M1)
-    # In a real scenario, this would be loaded from a config file as per FR-20
+    # Session configuration
     config = SessionConfig(
         prompt=prompt,
         num_players=num_players,
-        drunk=0.1, # Set to slightly > 0 to see some variety in M1
+        drunk=args.drunk,
         turn_budget=20
     )
 
     # Setup session
     session = GameSession(config, personas)
+    
+    if args.verbose:
+        print("\n[Verbose] Initializing player intents...")
+    
     try:
         session.initialize_agents(prompt)
+        if args.verbose:
+            for p in session.players:
+                print(f"  - {p.persona.name}'s intent: {p.private_intent}")
     except RuntimeError as e:
         print(f"Fatal Error: {e}")
         return
 
     print(f"\nStarting game with {num_players} players...")
-    print(f"Prompt: {prompt}\n")
+    print(f"Prompt: {prompt}")
+    print(f"Drunk Level: {args.drunk}")
     print("-" * 30)
 
     # Game Loop
     while True:
         # Run a turn
         try:
-            session.run_turn(prompt)
+            turn_meta = session.run_turn(prompt)
         except RuntimeError as e:
             print(f"\nFatal Error: {e}")
             break
         
         # FR-17: Print newly appended word
         last_word, player_name = session.transcript.entries[-1]
-        print(f"{player_name}: {last_word}")
+        
+        if args.verbose:
+            # turn_meta is (forgetfulness, confusion, rule)
+            f, c, rule = turn_meta
+            status = []
+            if f: status.append("FORGETFUL")
+            if c: status.append("CONFUSED")
+            if not f and not c: status.append("SOBER")
+            
+            status_str = f" [{', '.join(status)} | Rule: {rule}]"
+            print(f"{player_name}: {last_word}{status_str}")
+        else:
+            print(f"{player_name}: {last_word}")
 
         # Check stopping conditions (FR-14, FR-15)
         if session.check_stopping_conditions():
             print("-" * 30)
-            
-            # Determine why we paused to give a better message and action
             is_budget_pause = session.turn_count >= session.config.turn_budget
             reason = "Turn budget reached" if is_budget_pause else "Sentence boundary reached"
-            
             print(f"{reason}. Continue? (y/n): ", end="")
             choice = input().strip().lower()
-            
             if choice != 'y':
                 break
-            
             if is_budget_pause:
                 session.extend_budget()
                 print(f"Budget extended to {session.config.turn_budget} turns.")
@@ -93,6 +112,8 @@ def main():
     print(raw_text)
     
     print("\n" + "-" * 30)
+    if args.verbose:
+        print("[Verbose] Polishing transcript...")
     print("POLISHED VERSION:")
     polished = session.llm.polish_transcript(raw_text)
     print(polished)

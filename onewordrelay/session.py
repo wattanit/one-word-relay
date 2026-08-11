@@ -131,7 +131,7 @@ class GameSession:
         self.turn_count += 1
         self.current_player_idx = (self.current_player_idx + 1) % self.num_players
         
-        return True
+        return (forgetfulness, confusion, rule)
 
     def check_stopping_conditions(self) -> bool:
         """

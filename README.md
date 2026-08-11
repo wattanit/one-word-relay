@@ -31,12 +31,13 @@ uv run python3 -m onewordrelay.cli
 ```
 
 ### CLI Options
-- `--drunk <float>`: Set the global probability of forgetfulness and confusion (0.0 to 1.0). Default is `0.1`.
+- `--drunk <float>`: Set the global probability of forgetfulness and confusion (0.0 to 1.0). Default is `0.2`.
+- `--budget <int>`: Set the turn budget before the first pause. Default is `20`.
 - `--verbose`: Enable verbose mode to see private intents, impurity triggers (FORGETFUL/CONFUSED), and the polishing process.
 
 Example:
 ```bash
-uv run python3 -m onewordrelay.cli --drunk 0.3 --verbose
+uv run python3 -m onewordrelay.cli --drunk 0.3 --budget 50 --verbose
 ```
 
 ## 🛠 How it Works

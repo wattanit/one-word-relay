@@ -8,6 +8,7 @@ from onewordrelay.session import GameSession
 def main():
     parser = argparse.ArgumentParser(description="One-Word Relay POC")
     parser.add_argument("--drunk", type=float, default=0.2, help="Global drunk parameter (0.0 to 1.0)")
+    parser.add_argument("--budget", type=int, default=20, help="Turn budget before the first pause (default: 20)")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose mode to see internal mechanics")
     args = parser.parse_args()
 
@@ -45,7 +46,7 @@ def main():
         prompt=prompt,
         num_players=num_players,
         drunk=args.drunk,
-        turn_budget=20
+        turn_budget=args.budget
     )
 
     # Setup session

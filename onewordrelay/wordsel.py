@@ -5,17 +5,16 @@ from onewordrelay.config import SessionConfig
 
 def extract_word(text: str) -> str:
     """
-    Extracts the first whole word from the text, respecting real word boundaries.
-    Removes leading and trailing ellipses or filler punctuation that might disturb the turn end system.
+    Extracts the first actual word from the text. 
+    A word is defined as a sequence of alphanumeric characters (including internal hyphens/apostrophes).
+    This prevents strings like 'bread...can...' from being treated as a single word.
     (FR-6)
     """
-    match = re.search(r'\S+', text)
+    # Find the first sequence of characters that are alphanumeric.
+    # This ignores leading dots, spaces, or other punctuation.
+    match = re.search(r"[a-zA-Z0-9\u00C0-\u017F]+(?:['\-][a-zA-Z0-9\u00C0-\u017F]+)*", text)
     if match:
-        word = match.group(0)
-        # Remove leading and trailing ellipses (...) or repeated punctuation
-        word = re.sub(r'^\.{2,}', '', word)
-        word = re.sub(r'\.{2,}$', '', word)
-        return word
+        return match.group(0)
     return ""
 
 def select_word(candidates: List[str], confusion_triggered: bool) -> Tuple[str, str]:

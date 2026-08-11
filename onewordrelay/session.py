@@ -67,8 +67,9 @@ class GameSession:
         base_context = (
             f"Original Prompt: {original_prompt}\n"
             f"Your Private Intent: {player.private_intent}\n\n"
-            "The group is answering the prompt one word at a time. "
-            "Your turn: provide EXACTLY one word. Do not use punctuation "
+            "You are collaborating to write a coherent, grammatically correct answer to the prompt. "
+            "While following your private intent, ensure the sentence remains structurally sound. "
+            "Provide EXACTLY one word. Do not use punctuation "
             "unless the word naturally ends the entire sentence."
         )
         

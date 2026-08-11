@@ -71,6 +71,14 @@ def main():
     while True:
         # Run a turn
         try:
+            # Check if user wants to intervene before the turn
+            # Since input() blocks, we'll implement this as a post-turn check 
+            # or a manual 'skip' request during the pause.
+            # However, the user wants to break a loop *now*.
+            
+            # To make it truly interactive without blocking, we'd need threading.
+            # Instead, we'll add a "Manual Intervention" prompt if the user wants.
+            
             turn_meta = session.run_turn(prompt)
         except RuntimeError as e:
             print(f"\nFatal Error: {e}")
@@ -80,17 +88,38 @@ def main():
         last_word, player_name = session.transcript.entries[-1]
         
         if args.verbose:
-            # turn_meta is (forgetfulness, confusion, rule)
             f, c, rule = turn_meta
             status = []
             if f: status.append("FORGETFUL")
             if c: status.append("CONFUSED")
             if not f and not c: status.append("SOBER")
-            
             status_str = f" [{', '.join(status)} | Rule: {rule}]"
             print(f"{player_name}: {last_word}{status_str}")
         else:
             print(f"{player_name}: {last_word}")
+
+        # NEW: Intervention check
+        # We ask the user if they want to 'force a redo' of the last turn.
+        # To avoid asking every single turn (which is annoying), 
+        # we'll only offer this when a loop is suspected or just as a prompt.
+        # Better: add a prompt "Press enter for next word, 's' to skip/regenerate"
+        # But that changes the flow. 
+        # Let's implement a "Redo" option during the normal turn flow.
+        
+        # Since the user is in a terminal, the most natural way is to 
+        # press Enter to continue.
+        print(" [Enter: Next | s: Skip/Redo | q: Quit]", end=" ")
+        user_input = input().strip().lower()
+        
+        if user_input == 'q':
+            break
+        elif user_input == 's':
+            print(f"Skipping/Redoing turn for {player_name}...")
+            # Remove the last entry from transcript and decrement counters
+            session.transcript.entries.pop()
+            session.turn_count -= 1
+            session.current_player_idx = (session.current_player_idx - 1) % session.num_players
+            continue # This will cause the same player to run again
 
         # Check stopping conditions (FR-14, FR-15)
         if session.check_stopping_conditions():
